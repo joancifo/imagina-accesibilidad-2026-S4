@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comprobador de laboratorios · Sesión 4</title>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; color: #1b2228; background: #f8f9fa; line-height: 1.5; }
+    main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
+    h1 { font-size: 26px; margin: 0 0 4px; }
+    .intro { margin: 0 0 20px; color: #46545b; }
+    form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; background: #fff; border: 1px solid #58676f; border-radius: 10px; padding: 16px; }
+    label { display: block; font-weight: 600; margin-bottom: 4px; }
+    select { font: inherit; padding: 8px 10px; border: 1px solid #58676f; border-radius: 6px; min-width: 420px; max-width: 100%; }
+    button { font: inherit; font-weight: 600; background: #0725d0; color: #fff; border: 0; border-radius: 6px; padding: 10px 18px; cursor: pointer; }
+    :focus-visible { outline: 3px solid #0725d0; outline-offset: 2px; }
+    button:focus-visible { outline-color: #212c43; }
+    #resumen { margin: 20px 0 8px; font-size: 20px; font-weight: 700; }
+    #resumen:empty { display: none; }
+    .barra { height: 12px; background: #e0e5e9; border-radius: 6px; overflow: hidden; margin-bottom: 16px; }
+    .barra > span { display: block; height: 100%; background: #1d7240; width: 0; transition: width .4s; }
+    ol { list-style: none; padding: 0; margin: 0; }
+    li { background: #fff; border: 1px solid #c4cbd1; border-left-width: 6px; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; }
+    li.ok { border-left-color: #1d7240; }
+    li.no { border-left-color: #b00020; }
+    .estado { font-weight: 700; }
+    li.ok .estado { color: #1d7240; }
+    li.no .estado { color: #b00020; }
+    .criterio { color: #46545b; font-size: 14px; }
+    .pista { margin: 6px 0 0; font-size: 14px; }
+    .pista code { background: #f3f5f6; padding: 1px 4px; border-radius: 4px; }
+    .aviso { background: #fff4de; border-radius: 8px; padding: 10px 14px; margin-top: 16px; }
+    h2 { font-size: 18px; margin: 28px 0 8px; }
+    iframe { width: 100%; height: 420px; border: 1px solid #58676f; border-radius: 8px; background: #fff; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Comprobador de laboratorios</h1>
+    <p class="intro">Sesión 4 · WCAG 2.2, formularios, pestañas y componentes en HTML y JavaScript. Ábrelo con Live Server, elige tu etapa y pulsa «Comprobar». Puedes comprobar tantas veces como quieras.</p>
+
+    <form id="formulario">
+      <div>
+        <label for="etapa">Etapa</label>
+        <select id="etapa">
+          <option value="A1">Laboratorio A · A1 · labA-1-tareas · Foco, arrastre y tamaño (8)</option>
+          <option value="A2">Laboratorio A · A2 · labA-2-acceso · Acceso, ayuda y entrada redundante (8)</option>
+          <option value="B1">Laboratorio B · B1 · labB-1-pestanas · Pestañas (7)</option>
+          <option value="B2">Laboratorio B · B2 · labB-2-formulario · Formulario «Identifícate» (8)</option>
+          <option value="B3">Laboratorio B · B3 · labB-3-componentes · Biblioteca de componentes (8)</option>
+        </select>
+      </div>
+      <button type="submit">Comprobar</button>
+    </form>
+
+    <!-- La región viva existe desde el principio: el resultado se anuncia solo (WCAG 4.1.3) -->
+    <p id="resumen" role="status"></p>
+    <div class="barra" aria-hidden="true"><span id="progreso"></span></div>
+    <ol id="lista" aria-label="Resultado de cada comprobación"></ol>
+
+    <p class="aviso"><strong>Recuerda:</strong> el comprobador solo mira el código. Un cambio cuenta de verdad cuando la persona del grupo que usa el teclado y el lector de pantalla lo ha probado. Y ojo: el comprobador hace clic y pulsa teclas en tu página; vuelve a cargarla antes de probarla a mano.</p>
+
+    <h2 id="titulo-vista">Página comprobada</h2>
+    <iframe id="vista" title="Página comprobada" src="about:blank"></iframe>
+  </main>
+
+  <script src="comprobador.js"></script>
+  <script>
+    const formulario = document.getElementById('formulario');
+    const selector = document.getElementById('etapa');
+    const vista = document.getElementById('vista');
+    const resumen = document.getElementById('resumen');
+    const lista = document.getElementById('lista');
+    const progreso = document.getElementById('progreso');
+
+    try {
+      const guardada = localStorage.getItem('comprobador-s4-etapa');
+      if (guardada && window.Comprobador.ETAPAS[guardada]) selector.value = guardada;
+    } catch (e) { /* sin almacenamiento */ }
+
+    function escapar(texto) {
+      return texto.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
+        .replace(/&lt;(\/?[a-z][^&]*?)&gt;/g, '<code>&lt;$1&gt;</code>');
+    }
+
+    function pintar(resultados, etapa) {
+      const superadas = resultados.filter((r) => r.ok).length;
+      resumen.textContent = `Etapa ${etapa}: ${superadas} de ${resultados.length} superadas.`;
+      progreso.style.width = `${Math.round((superadas / resultados.length) * 100)}%`;
+      lista.innerHTML = resultados.map((r) => `
+        <li class="${r.ok ? 'ok' : 'no'}">
+          <span class="estado">${r.ok ? '✅ Superada' : '❌ Pendiente'}</span> ·
+          <strong>${r.id}. ${escapar(r.titulo)}</strong>
+          <div class="criterio">WCAG ${escapar(r.criterio)}</div>
+          ${r.ok ? '' : `<p class="pista">Pista: ${escapar(r.pista)}</p>`}
+        </li>`).join('');
+    }
+
+    // Carga una página en el marco y ejecuta las comprobaciones de la etapa
+    function comprobar(etapa, ruta) {
+      return new Promise((resolver, rechazar) => {
+        vista.onload = () => {
+          setTimeout(() => {
+            try {
+              const doc = vista.contentDocument;
+              const win = vista.contentWindow;
+              win.alert = () => {};
+              win.confirm = () => false;
+              resolver(window.Comprobador.ejecutar(doc, win, etapa));
+            } catch (e) {
+              rechazar(e);
+            }
+          }, 400);
+        };
+        vista.src = ruta + '?comprobacion=' + Date.now();
+      });
+    }
+    window.comprobar = comprobar;
+
+    formulario.addEventListener('submit', (evento) => {
+      evento.preventDefault();
+      const etapa = selector.value;
+      try { localStorage.setItem('comprobador-s4-etapa', etapa); } catch (e) { /* sin almacenamiento */ }
+      const pagina = window.Comprobador.ETAPAS[etapa].pagina;
+      resumen.textContent = 'Comprobando ' + pagina + '…';
+      comprobar(etapa, pagina)
+        .then((resultados) => pintar(resultados, etapa))
+        .catch(() => {
+          resumen.textContent = 'No he podido leer ' + pagina + '. Abre esta página con Live Server (no con doble clic) y comprueba que la carpeta de la etapa está junto a comprobador.html.';
+        });
+    });
+  </script>
+</body>
+</html>

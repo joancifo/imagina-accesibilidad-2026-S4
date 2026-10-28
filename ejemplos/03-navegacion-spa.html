@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicio · Canal de denuncias</title>
+  <!-- Ejemplo 03 · Navegación accesible en una aplicación de una sola página (SPA) con JavaScript puro.
+       Temario 3.12 y 3.13: título por página, foco al cambiar de «página», página actual y saltar al contenido. -->
+  <link rel="stylesheet" href="../comun/estilos.css">
+  <style>
+    .saltar { position: absolute; left: 16px; top: -100px; z-index: 100; background: #0725d0; color: #fff; padding: 8px 16px; border-radius: 6px; }
+    .saltar:focus { top: 8px; }
+    .menu { display: flex; gap: 16px; list-style: none; margin: 0; padding: 0; }
+    .menu a { color: #0622bc; padding: 6px 4px; }
+    .menu a[aria-current="page"] { font-weight: 700; text-decoration-thickness: 3px; }
+    main:focus, h1:focus { outline: none; } /* reciben el foco por código: no hace falta el recuadro */
+  </style>
+</head>
+<body>
+  <a class="saltar" href="#contenido" onclick="saltar(event)">Saltar al contenido principal</a>
+  <header class="cabecera">
+    <span class="logo">Canal de denuncias</span>
+    <nav aria-label="Principal">
+      <ul class="menu">
+        <li><a href="#/inicio">Inicio</a></li>
+        <li><a href="#/mis-denuncias">Mis denuncias</a></li>
+        <li><a href="#/ayuda">Ayuda</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="contenido" tabindex="-1"></main>
+
+  <script>
+    const PAGINAS = {
+      '/inicio': { titulo: 'Inicio', html: '<p>Bienvenida al Canal de denuncias. Usa el menú para moverte.</p>' },
+      '/mis-denuncias': { titulo: 'Mis denuncias', html: '<p>Tienes 2 denuncias pendientes y 3 en curso.</p>' },
+      '/ayuda': { titulo: 'Ayuda', html: '<p>Oficina de cumplimiento: 900 123 456.</p>' },
+    };
+    const contenido = document.getElementById('contenido');
+    let primeraCarga = true;
+
+    function pintarRuta() {
+      const ruta = location.hash.slice(1) || '/inicio';
+      const pagina = PAGINAS[ruta] || PAGINAS['/inicio'];
+
+      // 1. El contenido nuevo, con su h1 preparado para recibir el foco
+      contenido.innerHTML = `<h1 id="titulo-pagina" tabindex="-1">${pagina.titulo}</h1>${pagina.html}`;
+
+      // 2. El título de la pestaña del navegador (2.4.2)
+      document.title = `${pagina.titulo} · Canal de denuncias`;
+
+      // 3. La página actual en el menú (aria-current)
+      document.querySelectorAll('.menu a').forEach((a) => {
+        if (a.getAttribute('href') === '#' + ruta) a.setAttribute('aria-current', 'page');
+        else a.removeAttribute('aria-current');
+      });
+
+      // 4. El foco al h1 de la página nueva, salvo en la primera carga (2.4.3)
+      if (primeraCarga) primeraCarga = false;
+      else document.getElementById('titulo-pagina').focus();
+    }
+
+    // Saltar al contenido sin cambiar la ruta: el foco se mueve por código
+    function saltar(evento) {
+      evento.preventDefault();
+      contenido.focus();
+    }
+
+    window.addEventListener('hashchange', pintarRuta);
+    pintarRuta();
+  </script>
+</body>
+</html>

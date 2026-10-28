@@ -1,0 +1,25 @@
+/* componentes.css · Estilos de la biblioteca de componentes */
+.barra { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 20px; }
+.busqueda { flex: 1; }
+.busqueda label { display: block; font-weight: 600; margin-bottom: 4px; }
+.fila { display: flex; align-items: center; gap: 8px; }
+.pie { margin-top: 24px; }
+
+.boton { display: inline-block; font: inherit; border-radius: 6px; padding: 9px 16px; cursor: pointer; font-weight: 600; }
+.boton.principal { background: #0725d0; color: #fff; border: 1px solid #0725d0; }
+.boton.secundario { background: #fff; color: #0622bc; border: 1px solid #0622bc; }
+
+.boton-icono { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #c4cbd1; border-radius: 6px; background: #fff; color: #1b2228; cursor: pointer; }
+.boton-icono .icono { width: 22px; height: 22px; }
+/* El foco visible lo pone :focus-visible en estilos.css: aquí no se quita */
+
+.titulo-tarjeta { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
+
+.enlace { color: #0622bc; text-decoration: underline; cursor: pointer; }
+
+.interruptor { display: flex; align-items: center; gap: 12px; margin: 12px 0; }
+.switch { width: 44px; height: 24px; border-radius: 12px; background: #58676f; position: relative; cursor: pointer; border: 0; padding: 0; flex: none; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left .15s; }
+/* El estilo sale del mismo atributo que oye el lector: imposible que se desincronicen */
+.switch[aria-checked="true"] { background: #0725d0; }
+.switch[aria-checked="true"]::after { left: 23px; }

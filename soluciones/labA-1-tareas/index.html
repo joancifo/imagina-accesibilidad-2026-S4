@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis tareas de revisión · Canal de denuncias</title>
+  <!-- Laboratorio A · Etapa A1 · SOLUCIÓN (8 de 8 en el comprobador). -->
+  <link rel="stylesheet" href="../../comun/estilos.css">
+  <style>
+    /* 2.4.11 Foco no oculto: ni la cabecera fija (64 px) ni el aviso de cookies (88 px) tapan el foco */
+    html { scroll-padding-top: 80px; scroll-padding-bottom: 104px; }
+    .lista-tareas { list-style: none; padding: 0; margin: 0; }
+    .tarea { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #c4cbd1; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; }
+    .asa { cursor: grab; color: #58676f; font-size: 20px; }
+    .titulo-tarea { margin-right: auto; }
+    .tarea.arrastrando { opacity: .5; }
+    /* 2.5.8 Tamaño del objetivo: 24 × 24 px como mínimo (aquí 32 × 32) */
+    .iconos { display: flex; gap: 8px; }
+    .editar, .eliminar { width: 32px; height: 32px; padding: 6px; border: 0; border-radius: 6px; background: transparent; cursor: pointer; }
+    .editar { color: #0622bc; }
+    .eliminar { color: #b00020; }
+    .editar svg, .eliminar svg { width: 20px; height: 20px; display: block; }
+    /* 2.5.7 Movimientos de arrastre: alternativa con botones */
+    .mover { min-width: 32px; min-height: 32px; background: #fff; color: #0622bc; border: 1px solid #0622bc; border-radius: 6px; padding: 2px 10px; cursor: pointer; font-size: 14px; }
+    .paginacion { display: flex; align-items: center; gap: 8px; margin-top: 24px; font-size: 14px; }
+    .paginacion ul { display: flex; gap: 8px; list-style: none; padding: 0; margin: 0; }
+    .paginacion a { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; min-height: 32px; color: #0622bc; }
+    .historial li { margin-bottom: 8px; }
+    /* Aviso de cookies fijo abajo */
+    .cookies { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; align-items: center; gap: 16px; height: 88px; padding: 0 24px; background: #212c43; color: #fff; }
+    .cookies p { margin: 0 auto 0 0; }
+    .cookies button { background: #fff; color: #212c43; border: 0; border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <span class="logo">Canal de denuncias</span>
+    <a href="#ayuda">Ayuda</a>
+  </header>
+
+  <main>
+    <h1 id="titulo" tabindex="-1">Mis tareas de revisión</h1>
+    <p class="intro">Ordena las tareas por prioridad arrastrándolas o con los botones «Subir» y «Bajar»: la primera es la más urgente.</p>
+
+    <ul class="lista-tareas" id="tareas"></ul>
+    <!-- 4.1.3 Región viva: existe desde el principio y anuncia cada movimiento -->
+    <p id="anuncio" class="sr-only" role="status"></p>
+
+    <nav class="paginacion" aria-label="Páginas de tareas">
+      <span>Página:</span>
+      <ul>
+        <li><a href="#p1" aria-current="page">1</a></li>
+        <li><a href="#p2">2</a></li>
+        <li><a href="#p3">3</a></li>
+      </ul>
+    </nav>
+
+    <section class="tarjeta historial" aria-labelledby="titulo-historial" style="margin-top: 32px;">
+      <h2 id="titulo-historial">Últimos expedientes cerrados</h2>
+      <ul>
+        <li><a href="#b090">B-090 · Uso indebido de recursos</a></li>
+        <li><a href="#b088">B-088 · Conflicto de intereses</a></li>
+        <li><a href="#b081">B-081 · Fraude en gastos de viaje</a></li>
+        <li><a href="#b079">B-079 · Acoso laboral</a></li>
+      </ul>
+    </section>
+
+    <section class="tarjeta" id="ayuda" aria-labelledby="titulo-ayuda">
+      <h2 id="titulo-ayuda">Ayuda</h2>
+      <p>Teléfono de la oficina de cumplimiento: 900 123 456, de 9:00 a 18:00.</p>
+    </section>
+  </main>
+
+  <section class="cookies" aria-label="Aviso de cookies">
+    <p>Usamos cookies técnicas para que el canal funcione.</p>
+    <button type="button">Configurar</button>
+    <button type="button">Aceptar</button>
+  </section>
+
+  <script>
+    const tareas = [
+      'Revisar la denuncia B-118',
+      'Pedir documentos de B-121',
+      'Entrevistar a un testigo de B-121',
+      'Cerrar el expediente B-097',
+      'Preparar el informe trimestral',
+      'Actualizar la política del canal',
+    ];
+    const lista = document.getElementById('tareas');
+    const ICONO_LAPIZ = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20h4L19 9l-4-4L4 16z" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+    const ICONO_PAPELERA = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+
+    // Plantilla de cada tarea
+    function tareaHTML(tarea, i) {
+      return `
+        <li class="tarea" draggable="true" data-indice="${i}">
+          <span class="asa" aria-hidden="true">⠿</span>
+          <span class="titulo-tarea">${tarea}</span>
+          <button type="button" class="mover subir" onclick="moverConBoton(${i}, -1)" aria-label="Subir: ${tarea}">Subir</button>
+          <button type="button" class="mover bajar" onclick="moverConBoton(${i}, 1)" aria-label="Bajar: ${tarea}">Bajar</button>
+          <span class="iconos">
+            <button type="button" class="editar" onclick="editar(${i})" aria-label="Editar: ${tarea}">${ICONO_LAPIZ}</button>
+            <button type="button" class="eliminar" onclick="eliminar(${i})" aria-label="Eliminar: ${tarea}">${ICONO_PAPELERA}</button>
+          </span>
+        </li>`;
+    }
+
+    function pintar() {
+      lista.innerHTML = tareas.map(tareaHTML).join('');
+      activarArrastre();
+    }
+
+    function anunciar(mensaje) {
+      document.getElementById('anuncio').textContent = mensaje;
+    }
+
+    function editar(i) {
+      const nuevo = prompt('Nuevo nombre de la tarea', tareas[i]);
+      if (nuevo) {
+        tareas[i] = nuevo;
+        pintar();
+        lista.querySelectorAll('.editar')[i].focus();
+      }
+    }
+
+    function eliminar(i) {
+      const [tarea] = tareas.splice(i, 1);
+      pintar();
+      anunciar(`Tarea eliminada: ${tarea}.`);
+      // Reto pro: que el foco no se pierda. Va al «Eliminar» de la tarea que ocupa su lugar, o al título.
+      const botones = lista.querySelectorAll('.eliminar');
+      const destino = botones[Math.min(i, botones.length - 1)] || document.getElementById('titulo');
+      destino.focus();
+    }
+
+    // 2.5.7 Alternativa sin arrastrar: subir o bajar una posición con un clic (o Enter)
+    function moverConBoton(i, paso) {
+      const destino = i + paso;
+      if (destino < 0 || destino >= tareas.length) {
+        anunciar(`«${tareas[i]}» ya es la ${paso < 0 ? 'primera' : 'última'} tarea.`);
+        return;
+      }
+      mover(i, destino);
+      // El foco acompaña a la tarea: mismo botón, en su nueva posición
+      lista.querySelectorAll('.tarea')[destino].querySelector(paso < 0 ? '.subir' : '.bajar').focus();
+    }
+
+    // Mueve la tarea de la posición «desde» a la posición «hasta»
+    function mover(desde, hasta) {
+      const [tarea] = tareas.splice(desde, 1);
+      tareas.splice(hasta, 0, tarea);
+      pintar();
+      anunciar(`«${tarea}» ahora es la tarea ${hasta + 1} de ${tareas.length}.`);
+    }
+
+    // Arrastrar y soltar: se queda para quien usa ratón; ya no es la única forma
+    let origen = null;
+    function activarArrastre() {
+      lista.querySelectorAll('.tarea').forEach((li) => {
+        li.addEventListener('dragstart', (e) => {
+          origen = Number(li.dataset.indice);
+          li.classList.add('arrastrando');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        li.addEventListener('dragend', () => li.classList.remove('arrastrando'));
+        li.addEventListener('dragover', (e) => e.preventDefault());
+        li.addEventListener('drop', (e) => {
+          e.preventDefault();
+          mover(origen, Number(li.dataset.indice));
+        });
+      });
+    }
+
+    pintar();
+  </script>
+</body>
+</html>

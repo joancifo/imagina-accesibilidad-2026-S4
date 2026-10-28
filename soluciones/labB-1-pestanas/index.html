@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis denuncias · Canal de denuncias</title>
+  <!-- Laboratorio B · Etapa B1 · SOLUCIÓN (7 de 7 en el comprobador). Patrón «Tabs» de la APG, activación automática. -->
+  <link rel="stylesheet" href="../../comun/estilos.css">
+  <style>
+    .pestanas { display: flex; gap: 4px; border-bottom: 2px solid #c4cbd1; }
+    .pestana { padding: 10px 18px; cursor: pointer; border: 0; background: transparent; color: #46545b; font: inherit; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+    .pestana[aria-selected="true"] { color: #0725d0; border-bottom-color: #0725d0; font-weight: 700; }
+    .panel { background: #fff; border: 1px solid #c4cbd1; border-top: 0; border-radius: 0 0 12px 12px; padding: 16px 24px; }
+    .panel ul { padding-left: 20px; margin: 0; }
+    .panel li { margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <span class="logo">Canal de denuncias</span>
+    <a href="#ayuda">Ayuda</a>
+  </header>
+
+  <main>
+    <h1>Mis denuncias</h1>
+    <p class="intro">Filtra tus denuncias por estado.</p>
+
+    <!-- Lista de pestañas con nombre; cada pestaña es un botón con role="tab" -->
+    <div class="pestanas" role="tablist" aria-label="Filtrar denuncias por estado">
+      <button type="button" class="pestana" role="tab" id="pestana-0" aria-controls="panel" aria-selected="true" tabindex="0"
+              onclick="seleccionar(0)" onkeydown="alPulsarTecla(event, 0)">Pendientes (2)</button>
+      <button type="button" class="pestana" role="tab" id="pestana-1" aria-controls="panel" aria-selected="false" tabindex="-1"
+              onclick="seleccionar(1)" onkeydown="alPulsarTecla(event, 1)">En curso (3)</button>
+      <button type="button" class="pestana" role="tab" id="pestana-2" aria-controls="panel" aria-selected="false" tabindex="-1"
+              onclick="seleccionar(2)" onkeydown="alPulsarTecla(event, 2)">Cerradas (4)</button>
+    </div>
+    <!-- El panel dice de qué pestaña es -->
+    <div class="panel" id="panel" role="tabpanel" aria-labelledby="pestana-0"></div>
+
+    <p style="margin-top: 24px;"><a href="#nueva">Presentar una denuncia nueva</a></p>
+  </main>
+
+  <script>
+    const DENUNCIAS = [
+      ['B-124 · Uso indebido de datos · 20/10/2026', 'B-125 · Acoso laboral · 22/10/2026'],
+      ['B-118 · Conflicto de intereses · 02/10/2026', 'B-121 · Acoso laboral · 12/10/2026', 'B-122 · Fraude en compras · 14/10/2026'],
+      ['B-081 · Fraude en gastos de viaje', 'B-088 · Conflicto de intereses', 'B-090 · Uso indebido de recursos', 'B-097 · Seguridad laboral'],
+    ];
+    const pestanas = document.querySelectorAll('.pestana');
+    const panel = document.getElementById('panel');
+
+    // Marca la pestaña i como seleccionada, la deja como única parada de Tab y pinta su lista
+    function seleccionar(i) {
+      pestanas.forEach((pestana, j) => {
+        pestana.setAttribute('aria-selected', String(i === j));
+        pestana.tabIndex = i === j ? 0 : -1;          // roving tabindex
+      });
+      panel.setAttribute('aria-labelledby', pestanas[i].id);
+      panel.innerHTML = '<ul>' + DENUNCIAS[i].map((d) => `<li><a href="#${d.slice(0, 5)}">${d}</a></li>`).join('') + '</ul>';
+    }
+
+    // Teclado del patrón Tabs: flechas (con vuelta), Inicio y Fin
+    function alPulsarTecla(evento, i) {
+      const ultima = pestanas.length - 1;
+      let destino = null;
+      if (evento.key === 'ArrowRight') destino = i === ultima ? 0 : i + 1;
+      if (evento.key === 'ArrowLeft') destino = i === 0 ? ultima : i - 1;
+      if (evento.key === 'Home') destino = 0;
+      if (evento.key === 'End') destino = ultima;
+      if (destino === null) return;           // cualquier otra tecla (Tab incluida) sigue su camino
+      evento.preventDefault();
+      seleccionar(destino);
+      pestanas[destino].focus();
+    }
+
+    seleccionar(0);
+  </script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Identifícate · Canal de denuncias</title>
+  <!-- Laboratorio B · Etapa B2 · SOLUCIÓN (8 de 8 en el comprobador). -->
+  <link rel="stylesheet" href="../../comun/estilos.css">
+  <style>
+    .campo-check { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .campo-check input { width: 20px; height: 20px; }
+    .exito { background: #d2f9e2; color: #14532d; border-radius: 8px; padding: 12px 16px; margin: 16px 0 0; }
+    .exito:empty { display: none; }
+    .nota { font-size: 14px; color: #46545b; margin: 0 0 16px; }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <span class="logo">Canal de denuncias</span>
+    <a href="#ayuda">Ayuda</a>
+  </header>
+
+  <main>
+    <h1>Identifícate</h1>
+    <p class="intro">Paso 1 de 3 · Si no quieres identificarte, vuelve atrás y elige la denuncia anónima.</p>
+
+    <form id="identificate" class="tarjeta" novalidate>
+      <!-- Lo obligatorio se explica con texto, no solo con color -->
+      <p class="nota">Los campos marcados con asterisco (*) son obligatorios.</p>
+
+      <div class="campo">
+        <label for="nombre">Nombre y apellidos <span aria-hidden="true">*</span></label>
+        <input type="text" id="nombre" required autocomplete="name">
+      </div>
+      <div class="campo">
+        <label for="email">Email <span aria-hidden="true">*</span></label>
+        <input type="email" id="email" required autocomplete="email">
+      </div>
+      <div class="campo">
+        <label for="telefono">Teléfono <span aria-hidden="true">*</span></label>
+        <p class="ayuda" id="ayuda-telefono">9 dígitos, sin espacios. Solo lo usaremos si no podemos escribirte.</p>
+        <input type="tel" id="telefono" required autocomplete="tel" inputmode="numeric"
+               aria-describedby="ayuda-telefono" data-ayuda="ayuda-telefono">
+      </div>
+      <div class="campo">
+        <label for="departamento">Departamento <span aria-hidden="true">*</span></label>
+        <select id="departamento" required>
+          <option value="">Elige uno…</option>
+          <option>Administración</option>
+          <option>Comercial</option>
+          <option>Logística</option>
+          <option>Tecnología</option>
+        </select>
+      </div>
+      <div class="campo">
+        <div class="campo-check">
+          <input type="checkbox" id="acepto" required>
+          <label for="acepto">He leído la política de privacidad del canal <span aria-hidden="true">*</span></label>
+        </div>
+      </div>
+      <div class="acciones">
+        <!-- Nunca desactivado: al pulsarlo, se explican los errores -->
+        <button type="submit" class="principal" id="enviar">Siguiente</button>
+      </div>
+      <!-- La región viva existe desde el principio -->
+      <p id="resultado" class="exito" role="status"></p>
+    </form>
+  </main>
+
+  <script>
+    const formulario = document.getElementById('identificate');
+    const resultado = document.getElementById('resultado');
+    const campos = ['nombre', 'email', 'telefono', 'departamento', 'acepto'].map((id) => document.getElementById(id));
+
+    // Mensajes que dicen qué hacer, con un ejemplo
+    const MENSAJES = {
+      nombre: 'Escribe tu nombre y apellidos. Ejemplo: Ana López García.',
+      email: 'Escribe un email con @ y dominio. Ejemplo: ana@empresa.com.',
+      telefono: 'Escribe 9 dígitos, sin espacios. Ejemplo: 612345678.',
+      departamento: 'Elige tu departamento en la lista.',
+      acepto: 'Marca la casilla para confirmar que has leído la política de privacidad.',
+    };
+
+    function esValido(campo) {
+      if (campo.type === 'checkbox') return campo.checked;
+      const valor = campo.value.trim();
+      if (campo.id === 'email') return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(valor);
+      if (campo.id === 'telefono') return /^\d{9}$/.test(valor);
+      return valor !== '';
+    }
+
+    // aria-describedby = la ayuda (si la hay) + el error (si lo hay)
+    function describir(campo, conError) {
+      const ids = [];
+      if (campo.dataset.ayuda) ids.push(campo.dataset.ayuda);
+      if (conError) ids.push('error-' + campo.id);
+      if (ids.length) campo.setAttribute('aria-describedby', ids.join(' '));
+      else campo.removeAttribute('aria-describedby');
+    }
+
+    // El contrato del campo, escrito una sola vez
+    function mostrarError(campo) {
+      let error = document.getElementById('error-' + campo.id);
+      if (!error) {
+        error = document.createElement('p');
+        error.id = 'error-' + campo.id;
+        error.className = 'error';
+        campo.closest('.campo').append(error);
+      }
+      error.textContent = '⚠ ' + MENSAJES[campo.id];
+      campo.setAttribute('aria-invalid', 'true');
+      describir(campo, true);
+    }
+
+    function limpiarError(campo) {
+      const error = document.getElementById('error-' + campo.id);
+      if (error) error.remove();
+      campo.removeAttribute('aria-invalid');
+      describir(campo, false);
+    }
+
+    // Al corregir un campo con error, el error desaparece
+    ['input', 'change'].forEach((tipo) => formulario.addEventListener(tipo, (e) => {
+      if (e.target.getAttribute('aria-invalid') === 'true' && esValido(e.target)) limpiarError(e.target);
+    }));
+
+    formulario.addEventListener('submit', (e) => {
+      e.preventDefault();
+      resultado.textContent = '';
+      let primero = null;
+      campos.forEach((campo) => {
+        if (esValido(campo)) {
+          limpiarError(campo);
+        } else {
+          mostrarError(campo);
+          if (!primero) primero = campo;
+        }
+      });
+      if (primero) {
+        primero.focus();          // foco al primer campo con error
+        return;
+      }
+      resultado.textContent = 'Datos guardados. Ya puedes pasar al paso 2.';
+    });
+  </script>
+</body>
+</html>

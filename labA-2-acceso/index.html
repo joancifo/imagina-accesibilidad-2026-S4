@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pide el certificado de tu denuncia · Canal de denuncias</title>
+  <!-- Laboratorio A · Etapa A2 · Punto de partida con barreras puestas a propósito. -->
+  <link rel="stylesheet" href="../comun/estilos.css">
+  <style>
+    .pasos { color: #46545b; font-weight: 600; margin: 0 0 16px; }
+    .captcha { background: #f3f5f6; border-radius: 8px; padding: 12px; }
+    .campo-check { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .campo-check input { width: 20px; height: 20px; }
+    .soporte { font-size: 14px; color: #46545b; border-top: 1px solid #c4cbd1; padding-top: 12px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <span class="logo">Canal de denuncias</span>
+  </header>
+
+  <main>
+    <h1>Pide el certificado de tu denuncia</h1>
+    <p class="intro">Te enviaremos por correo postal un certificado con el estado de tu denuncia.</p>
+    <p class="pasos" id="indicador">Paso 1 de 3</p>
+
+    <form id="solicitud" class="tarjeta" novalidate>
+
+      <!-- ───────── Paso 1 ───────── -->
+      <section class="paso" id="paso-1" aria-labelledby="t1">
+        <h2 id="t1" tabindex="-1">1. Identifícate</h2>
+        <p><a href="#ayuda">¿Necesitas ayuda?</a></p>
+        <div class="campo">
+          <label for="usuario">Usuario</label>
+          <input type="text" id="usuario" name="usuario" autocomplete="off">
+        </div>
+        <div class="campo">
+          <label for="clave">Contraseña</label>
+          <!-- «Por seguridad», no dejamos pegar la contraseña -->
+          <input type="password" id="clave" name="clave" autocomplete="off" onpaste="return false">
+        </div>
+        <div class="campo captcha">
+          <label for="captcha">Para demostrar que no eres un robot, escribe al revés la palabra «DENUNCIA»</label>
+          <input type="text" id="captcha" name="captcha">
+        </div>
+        <div class="acciones">
+          <button type="button" class="principal" onclick="irAPaso(2)">Siguiente</button>
+        </div>
+      </section>
+
+      <!-- ───────── Paso 2 ───────── -->
+      <section class="paso" id="paso-2" aria-labelledby="t2" hidden>
+        <h2 id="t2" tabindex="-1">2. Dirección de envío</h2>
+        <div class="campo">
+          <label for="envio-nombre">Nombre y apellidos</label>
+          <input type="text" id="envio-nombre" name="envio-nombre">
+        </div>
+        <div class="campo">
+          <label for="envio-direccion">Dirección</label>
+          <input type="text" id="envio-direccion" name="envio-direccion">
+        </div>
+        <div class="campo">
+          <label for="envio-cp">Código postal</label>
+          <input type="text" id="envio-cp" name="envio-cp" inputmode="numeric">
+        </div>
+        <div class="campo">
+          <label for="envio-ciudad">Ciudad</label>
+          <input type="text" id="envio-ciudad" name="envio-ciudad">
+        </div>
+        <div class="acciones">
+          <button type="button" class="secundario" onclick="irAPaso(1)">Anterior</button>
+          <button type="button" class="principal" onclick="irAPaso(3)">Siguiente</button>
+        </div>
+        <p class="soporte"><a href="#ayuda">Ayuda</a></p>
+      </section>
+
+      <!-- ───────── Paso 3 ───────── -->
+      <section class="paso" id="paso-3" aria-labelledby="t3" hidden>
+        <h2 id="t3" tabindex="-1">3. Dirección para las notificaciones</h2>
+        <aside class="soporte"><a href="#ayuda">Contacta con soporte</a></aside>
+        <p>¿Dónde quieres recibir las cartas sobre la investigación?</p>
+        <div class="campo">
+          <label for="notif-nombre">Nombre y apellidos</label>
+          <input type="text" id="notif-nombre" name="notif-nombre">
+        </div>
+        <div class="campo">
+          <label for="notif-direccion">Dirección</label>
+          <input type="text" id="notif-direccion" name="notif-direccion">
+        </div>
+        <div class="campo">
+          <label for="notif-cp">Código postal</label>
+          <input type="text" id="notif-cp" name="notif-cp" inputmode="numeric">
+        </div>
+        <div class="campo">
+          <label for="notif-ciudad">Ciudad</label>
+          <input type="text" id="notif-ciudad" name="notif-ciudad">
+        </div>
+        <div class="acciones">
+          <button type="button" class="secundario" onclick="irAPaso(2)">Anterior</button>
+          <button type="submit" class="principal">Enviar solicitud</button>
+        </div>
+      </section>
+    </form>
+
+    <section class="tarjeta" id="ayuda" aria-labelledby="titulo-ayuda">
+      <h2 id="titulo-ayuda">Ayuda</h2>
+      <p>Oficina de cumplimiento: 900 123 456, de 9:00 a 18:00, o cumplimiento@empresa.example.</p>
+    </section>
+
+    <p id="resultado" class="aviso" role="status"></p>
+  </main>
+
+  <script>
+    const indicador = document.getElementById('indicador');
+
+    // Muestra un paso, oculta los demás y lleva el foco a su título
+    function irAPaso(n) {
+      document.querySelectorAll('.paso').forEach((paso, i) => {
+        paso.hidden = i + 1 !== n;
+      });
+      indicador.textContent = `Paso ${n} de 3`;
+      document.getElementById('t' + n).focus();
+    }
+
+    document.getElementById('solicitud').addEventListener('submit', (e) => {
+      e.preventDefault();
+      document.getElementById('resultado').textContent = 'Solicitud enviada. Recibirás el certificado en 5 días laborables.';
+    });
+  </script>
+</body>
+</html>

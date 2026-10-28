@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Identifícate · Canal de denuncias</title>
+  <!-- Laboratorio B · Etapa B2 · Punto de partida con barreras puestas a propósito. -->
+  <link rel="stylesheet" href="../comun/estilos.css">
+  <style>
+    .obligatorio { border-color: #b00020 !important; }
+    .mal { border: 2px solid #b00020 !important; }
+    .campo-check { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .campo-check input { width: 20px; height: 20px; }
+    .principal:disabled { background: #c4cbd1; color: #58676f; cursor: not-allowed; }
+    .exito { background: #d2f9e2; color: #14532d; border-radius: 8px; padding: 12px 16px; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <span class="logo">Canal de denuncias</span>
+    <a href="#ayuda">Ayuda</a>
+  </header>
+
+  <main>
+    <h1>Identifícate</h1>
+    <p class="intro">Paso 1 de 3 · Si no quieres identificarte, vuelve atrás y elige la denuncia anónima.</p>
+
+    <form id="identificate" class="tarjeta" novalidate>
+      <div class="campo">
+        <input type="text" id="nombre" class="obligatorio" placeholder="Nombre y apellidos">
+      </div>
+      <div class="campo">
+        <input type="email" id="email" class="obligatorio" placeholder="Email">
+      </div>
+      <div class="campo">
+        <div class="etiqueta">Teléfono</div>
+        <input type="tel" id="telefono" class="obligatorio" inputmode="numeric">
+        <p class="ayuda" id="ayuda-telefono">9 dígitos, sin espacios. Solo lo usaremos si no podemos escribirte.</p>
+      </div>
+      <div class="campo">
+        <div class="etiqueta">Departamento</div>
+        <select id="departamento" class="obligatorio">
+          <option value="">Elige uno…</option>
+          <option>Administración</option>
+          <option>Comercial</option>
+          <option>Logística</option>
+          <option>Tecnología</option>
+        </select>
+      </div>
+      <div class="campo-check">
+        <input type="checkbox" id="acepto" class="obligatorio">
+        <span>He leído la política de privacidad del canal</span>
+      </div>
+      <div class="acciones">
+        <button type="submit" class="principal" id="enviar" disabled>Siguiente</button>
+      </div>
+      <div id="zona-exito"></div>
+    </form>
+  </main>
+
+  <script>
+    const formulario = document.getElementById('identificate');
+    const enviar = document.getElementById('enviar');
+    const campos = ['nombre', 'email', 'telefono', 'departamento'].map((id) => document.getElementById(id));
+    const acepto = document.getElementById('acepto');
+
+    // ¿Es válido cada campo?
+    function esValido(campo) {
+      const valor = campo.value.trim();
+      if (campo.id === 'email') return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(valor);
+      if (campo.id === 'telefono') return /^\d{9}$/.test(valor);
+      return valor !== '';
+    }
+
+    // El botón solo se activa cuando todo está bien
+    function revisar() {
+      enviar.disabled = !(campos.every(esValido) && acepto.checked);
+    }
+    formulario.addEventListener('input', revisar);
+    formulario.addEventListener('change', revisar);
+
+    // Al salir de un campo, borde rojo si está mal
+    campos.forEach((campo) => {
+      campo.addEventListener('blur', () => campo.classList.toggle('mal', !esValido(campo)));
+    });
+
+    formulario.addEventListener('submit', (e) => {
+      e.preventDefault();
+      // El mensaje de éxito se crea a la vez que su texto
+      document.getElementById('zona-exito').innerHTML = '<div class="exito">Datos guardados. Pasa al paso 2.</div>';
+    });
+  </script>
+</body>
+</html>

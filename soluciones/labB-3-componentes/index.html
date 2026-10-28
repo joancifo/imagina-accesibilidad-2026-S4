@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bandeja de denuncias · Canal de denuncias</title>
+  <!-- Laboratorio B · Etapa B3 · SOLUCIÓN (8 de 8 en el comprobador). La página se monta con la biblioteca de componentes.
+       Solo se toca componentes.js y componentes.css: app.js NO se toca. -->
+  <link rel="stylesheet" href="../../comun/estilos.css">
+  <link rel="stylesheet" href="componentes.css">
+</head>
+<body>
+  <header class="cabecera">
+    <span class="logo">Canal de denuncias</span>
+    <a href="#ayuda">Ayuda</a>
+  </header>
+
+  <main>
+    <h1>Bandeja de denuncias</h1>
+    <p class="intro">Todo lo que ves debajo lo pintan los componentes de componentes.js.</p>
+    <div id="app"></div>
+  </main>
+
+  <!-- Región viva para los avisos: existe desde el principio -->
+  <p id="aviso" class="aviso" role="status"></p>
+
+  <script src="componentes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

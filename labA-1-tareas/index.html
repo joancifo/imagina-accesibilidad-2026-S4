@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis tareas de revisión · Canal de denuncias</title>
+  <!-- Laboratorio A · Etapa A1 · Punto de partida con barreras puestas a propósito. -->
+  <link rel="stylesheet" href="../comun/estilos.css">
+  <style>
+    .lista-tareas { list-style: none; padding: 0; margin: 0; }
+    .tarea { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #c4cbd1; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; }
+    .asa { cursor: grab; color: #58676f; font-size: 20px; }
+    .titulo-tarea { margin-right: auto; }
+    .tarea.arrastrando { opacity: .5; }
+    /* Botones de icono: «que queden discretos» */
+    .iconos { display: flex; gap: 2px; }
+    .editar, .eliminar { width: 16px; height: 16px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+    .editar { color: #0622bc; }
+    .eliminar { color: #b00020; }
+    .editar svg, .eliminar svg { width: 16px; height: 16px; display: block; }
+    /* Paginación: «que ocupe poco» */
+    .paginacion { display: flex; align-items: center; gap: 6px; margin-top: 24px; font-size: 12px; }
+    .paginacion ul { display: flex; gap: 2px; list-style: none; padding: 0; margin: 0; }
+    .paginacion a { display: block; padding: 0 2px; line-height: 14px; color: #0622bc; }
+    .historial li { margin-bottom: 8px; }
+    /* Aviso de cookies fijo abajo */
+    .cookies { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; align-items: center; gap: 16px; height: 88px; padding: 0 24px; background: #212c43; color: #fff; }
+    .cookies p { margin: 0 auto 0 0; }
+    .cookies button { background: #fff; color: #212c43; border: 0; border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <span class="logo">Canal de denuncias</span>
+    <a href="#ayuda">Ayuda</a>
+  </header>
+
+  <main>
+    <h1>Mis tareas de revisión</h1>
+    <p class="intro">Ordena las tareas por prioridad arrastrándolas: la primera es la más urgente.</p>
+
+    <ul class="lista-tareas" id="tareas"></ul>
+
+    <nav class="paginacion" aria-label="Páginas de tareas">
+      <span>Página:</span>
+      <ul>
+        <li><a href="#p1" aria-current="page">1</a></li>
+        <li><a href="#p2">2</a></li>
+        <li><a href="#p3">3</a></li>
+      </ul>
+    </nav>
+
+    <section class="tarjeta historial" aria-labelledby="titulo-historial" style="margin-top: 32px;">
+      <h2 id="titulo-historial">Últimos expedientes cerrados</h2>
+      <ul>
+        <li><a href="#b090">B-090 · Uso indebido de recursos</a></li>
+        <li><a href="#b088">B-088 · Conflicto de intereses</a></li>
+        <li><a href="#b081">B-081 · Fraude en gastos de viaje</a></li>
+        <li><a href="#b079">B-079 · Acoso laboral</a></li>
+      </ul>
+    </section>
+
+    <section class="tarjeta" id="ayuda" aria-labelledby="titulo-ayuda">
+      <h2 id="titulo-ayuda">Ayuda</h2>
+      <p>Teléfono de la oficina de cumplimiento: 900 123 456, de 9:00 a 18:00.</p>
+    </section>
+  </main>
+
+  <section class="cookies" aria-label="Aviso de cookies">
+    <p>Usamos cookies técnicas para que el canal funcione.</p>
+    <button type="button">Configurar</button>
+    <button type="button">Aceptar</button>
+  </section>
+
+  <script>
+    const tareas = [
+      'Revisar la denuncia B-118',
+      'Pedir documentos de B-121',
+      'Entrevistar a un testigo de B-121',
+      'Cerrar el expediente B-097',
+      'Preparar el informe trimestral',
+      'Actualizar la política del canal',
+    ];
+    const lista = document.getElementById('tareas');
+    const ICONO_LAPIZ = '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+    const ICONO_PAPELERA = '<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+
+    // Plantilla de cada tarea
+    function tareaHTML(tarea, i) {
+      return `
+        <li class="tarea" draggable="true" data-indice="${i}">
+          <span class="asa" aria-hidden="true">⠿</span>
+          <span class="titulo-tarea">${tarea}</span>
+          <span class="iconos">
+            <button type="button" class="editar" onclick="editar(${i})">${ICONO_LAPIZ}</button>
+            <button type="button" class="eliminar" onclick="eliminar(${i})">${ICONO_PAPELERA}</button>
+          </span>
+        </li>`;
+    }
+
+    function pintar() {
+      lista.innerHTML = tareas.map(tareaHTML).join('');
+      activarArrastre();
+    }
+
+    function editar(i) {
+      const nuevo = prompt('Nuevo nombre de la tarea', tareas[i]);
+      if (nuevo) {
+        tareas[i] = nuevo;
+        pintar();
+      }
+    }
+
+    function eliminar(i) {
+      tareas.splice(i, 1);
+      pintar();
+    }
+
+    // Mueve la tarea de la posición «desde» a la posición «hasta»
+    function mover(desde, hasta) {
+      const [tarea] = tareas.splice(desde, 1);
+      tareas.splice(hasta, 0, tarea);
+      pintar();
+    }
+
+    // Arrastrar y soltar: hoy es la ÚNICA forma de reordenar
+    let origen = null;
+    function activarArrastre() {
+      lista.querySelectorAll('.tarea').forEach((li) => {
+        li.addEventListener('dragstart', (e) => {
+          origen = Number(li.dataset.indice);
+          li.classList.add('arrastrando');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        li.addEventListener('dragend', () => li.classList.remove('arrastrando'));
+        li.addEventListener('dragover', (e) => e.preventDefault());
+        li.addEventListener('drop', (e) => {
+          e.preventDefault();
+          mover(origen, Number(li.dataset.indice));
+        });
+      });
+    }
+
+    pintar();
+  </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ejemplo 02 · Tamaño del objetivo (WCAG 2.5.8)</title>
+  <!-- Demo de la mini-clase A · 2.5.8 Tamaño del objetivo (mínimo), nuevo en WCAG 2.2 -->
+  <link rel="stylesheet" href="../comun/estilos.css">
+  <style>
+    .fila { display: flex; align-items: center; gap: 16px; background: #fff; border: 1px solid #c4cbd1; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+    .fila p { margin: 0; flex: 1; }
+    .grupo { display: flex; align-items: center; }
+    .ic { position: relative; border: 0; background: #0725d0; color: #fff; border-radius: 4px; padding: 0; cursor: pointer; }
+    .t16 { width: 16px; height: 16px; } .t24 { width: 24px; height: 24px; } .t44 { width: 44px; height: 44px; }
+    .junto { gap: 2px; } .separado { gap: 10px; }
+    .veredicto { font-weight: 700; width: 120px; }
+    .ok { color: #1d7240; } .mal { color: #b00020; }
+    /* Círculo de 24 px centrado en cada objetivo: si dos círculos se cruzan, no cumple por espaciado */
+    .ver-circulos .ic::after { content: ""; position: absolute; left: 50%; top: 50%; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%; border: 2px dashed #b00020; box-sizing: border-box; pointer-events: none; }
+    .control { background: #fff4de; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="cabecera"><span class="logo">Canal de denuncias</span></header>
+  <main>
+    <h1>2.5.8 · ¿Le doy al botón con el dedo?</h1>
+    <p class="control"><label><input type="checkbox" onchange="document.body.classList.toggle('ver-circulos', this.checked)"> Ver el círculo de 24 px de cada botón</label></p>
+
+    <div class="fila"><span class="veredicto mal">✗ No cumple</span><p>Botones de 16 × 16 px pegados (2 px). Los círculos se cruzan.</p>
+      <div class="grupo junto"><button class="ic t16" aria-label="Editar"></button><button class="ic t16" aria-label="Duplicar"></button><button class="ic t16" aria-label="Eliminar"></button></div></div>
+
+    <div class="fila"><span class="veredicto ok">✓ Cumple</span><p>Los mismos 16 × 16 px, pero separados: la excepción del espaciado (los círculos no se cruzan).</p>
+      <div class="grupo separado"><button class="ic t16" aria-label="Editar"></button><button class="ic t16" aria-label="Duplicar"></button><button class="ic t16" aria-label="Eliminar"></button></div></div>
+
+    <div class="fila"><span class="veredicto ok">✓ Cumple</span><p>24 × 24 px: el mínimo de nivel AA (2.5.8).</p>
+      <div class="grupo junto"><button class="ic t24" aria-label="Editar"></button><button class="ic t24" aria-label="Duplicar"></button><button class="ic t24" aria-label="Eliminar"></button></div></div>
+
+    <div class="fila"><span class="veredicto ok">✓ AAA</span><p>44 × 44 px: el nivel AAA (2.5.5) y lo que recomiendan las guías de iOS y Android.</p>
+      <div class="grupo separado"><button class="ic t44" aria-label="Editar"></button><button class="ic t44" aria-label="Duplicar"></button><button class="ic t44" aria-label="Eliminar"></button></div></div>
+
+    <p>Excepciones de 2.5.8: espaciado suficiente, existe otro control equivalente que sí cumple, enlaces dentro de un texto, controles que dibuja el navegador sin modificar y casos en que el tamaño es esencial (por ejemplo, un mapa).</p>
+  </main>
+</body>
+</html>

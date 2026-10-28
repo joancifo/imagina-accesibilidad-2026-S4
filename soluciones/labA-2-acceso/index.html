@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pide el certificado de tu denuncia · Canal de denuncias</title>
+  <!-- Laboratorio A · Etapa A2 · SOLUCIÓN (8 de 8 en el comprobador). -->
+  <link rel="stylesheet" href="../../comun/estilos.css">
+  <style>
+    .pasos { color: #46545b; font-weight: 600; margin: 0 0 16px; }
+    .campo-check { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .campo-check input { width: 20px; height: 20px; }
+    .soporte { font-size: 14px; color: #46545b; border-top: 1px solid #c4cbd1; padding-top: 12px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <span class="logo">Canal de denuncias</span>
+    <!-- 3.2.6 Ayuda consistente: un único acceso, siempre en el mismo sitio -->
+    <a href="#ayuda">¿Necesitas ayuda?</a>
+  </header>
+
+  <main>
+    <h1>Pide el certificado de tu denuncia</h1>
+    <p class="intro">Te enviaremos por correo postal un certificado con el estado de tu denuncia.</p>
+    <p class="pasos" id="indicador">Paso 1 de 3</p>
+
+    <form id="solicitud" class="tarjeta" novalidate>
+
+      <!-- ───────── Paso 1 ───────── -->
+      <section class="paso" id="paso-1" aria-labelledby="t1">
+        <h2 id="t1" tabindex="-1">1. Identifícate</h2>
+        <div class="campo">
+          <label for="usuario">Usuario</label>
+          <input type="text" id="usuario" name="usuario" autocomplete="username">
+        </div>
+        <div class="campo">
+          <label for="clave">Contraseña</label>
+          <!-- 3.3.8 Se puede pegar y el gestor de contraseñas la reconoce -->
+          <input type="password" id="clave" name="clave" autocomplete="current-password">
+          <button type="button" class="secundario" id="ver-clave" aria-pressed="false" aria-controls="clave" onclick="alternarClave(this)" style="margin-top: 8px;">Mostrar contraseña</button>
+        </div>
+        <div class="acciones">
+          <button type="button" class="principal" onclick="irAPaso(2)">Siguiente</button>
+        </div>
+      </section>
+
+      <!-- ───────── Paso 2 ───────── -->
+      <section class="paso" id="paso-2" aria-labelledby="t2" hidden>
+        <h2 id="t2" tabindex="-1">2. Dirección de envío</h2>
+        <div class="campo">
+          <label for="envio-nombre">Nombre y apellidos</label>
+          <input type="text" id="envio-nombre" name="envio-nombre" autocomplete="name">
+        </div>
+        <div class="campo">
+          <label for="envio-direccion">Dirección</label>
+          <input type="text" id="envio-direccion" name="envio-direccion" autocomplete="street-address">
+        </div>
+        <div class="campo">
+          <label for="envio-cp">Código postal</label>
+          <input type="text" id="envio-cp" name="envio-cp" inputmode="numeric" autocomplete="postal-code">
+        </div>
+        <div class="campo">
+          <label for="envio-ciudad">Ciudad</label>
+          <input type="text" id="envio-ciudad" name="envio-ciudad" autocomplete="address-level2">
+        </div>
+        <div class="acciones">
+          <button type="button" class="secundario" onclick="irAPaso(1)">Anterior</button>
+          <button type="button" class="principal" onclick="irAPaso(3)">Siguiente</button>
+        </div>
+      </section>
+
+      <!-- ───────── Paso 3 ───────── -->
+      <section class="paso" id="paso-3" aria-labelledby="t3" hidden>
+        <h2 id="t3" tabindex="-1">3. Dirección para las notificaciones</h2>
+        <p>¿Dónde quieres recibir las cartas sobre la investigación?</p>
+        <!-- 3.3.7 Entrada redundante: no hay que volver a escribir lo que ya dimos -->
+        <div class="campo-check">
+          <input type="checkbox" id="misma-direccion" onchange="copiarEnvio(this.checked)">
+          <label for="misma-direccion">Usar la misma dirección que la de envío</label>
+        </div>
+        <div class="campo">
+          <label for="notif-nombre">Nombre y apellidos</label>
+          <input type="text" id="notif-nombre" name="notif-nombre" autocomplete="name">
+        </div>
+        <div class="campo">
+          <label for="notif-direccion">Dirección</label>
+          <input type="text" id="notif-direccion" name="notif-direccion" autocomplete="street-address">
+        </div>
+        <div class="campo">
+          <label for="notif-cp">Código postal</label>
+          <input type="text" id="notif-cp" name="notif-cp" inputmode="numeric" autocomplete="postal-code">
+        </div>
+        <div class="campo">
+          <label for="notif-ciudad">Ciudad</label>
+          <input type="text" id="notif-ciudad" name="notif-ciudad" autocomplete="address-level2">
+        </div>
+        <div class="acciones">
+          <button type="button" class="secundario" onclick="irAPaso(2)">Anterior</button>
+          <button type="submit" class="principal">Enviar solicitud</button>
+        </div>
+      </section>
+    </form>
+
+    <section class="tarjeta" id="ayuda" aria-labelledby="titulo-ayuda">
+      <h2 id="titulo-ayuda">Ayuda</h2>
+      <p>Oficina de cumplimiento: 900 123 456, de 9:00 a 18:00, o cumplimiento@empresa.example.</p>
+    </section>
+
+    <p id="resultado" class="aviso" role="status"></p>
+  </main>
+
+  <script>
+    const indicador = document.getElementById('indicador');
+
+    // Muestra un paso, oculta los demás y lleva el foco a su título
+    function irAPaso(n) {
+      document.querySelectorAll('.paso').forEach((paso, i) => {
+        paso.hidden = i + 1 !== n;
+      });
+      indicador.textContent = `Paso ${n} de 3`;
+      document.getElementById('t' + n).focus();
+    }
+
+    // Mostrar u ocultar la contraseña: ayuda a no equivocarse al escribirla
+    function alternarClave(boton) {
+      const clave = document.getElementById('clave');
+      const visible = boton.getAttribute('aria-pressed') === 'true';
+      clave.type = visible ? 'password' : 'text';
+      boton.setAttribute('aria-pressed', String(!visible));
+    }
+
+    // Copia la dirección de envío (o la borra si se desmarca)
+    function copiarEnvio(copiar) {
+      ['nombre', 'direccion', 'cp', 'ciudad'].forEach((campo) => {
+        document.getElementById('notif-' + campo).value = copiar ? document.getElementById('envio-' + campo).value : '';
+      });
+    }
+
+    document.getElementById('solicitud').addEventListener('submit', (e) => {
+      e.preventDefault();
+      document.getElementById('resultado').textContent = 'Solicitud enviada. Recibirás el certificado en 5 días laborables.';
+    });
+  </script>
+</body>
+</html>
